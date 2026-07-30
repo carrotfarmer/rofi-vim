@@ -945,6 +945,17 @@ all the properties of that element.
 The scrollbar uses the `handle` state when drawing the small scrollbar handle.
 This allows the colors used for drawing the handle to be set independently.
 
+#### Case indicator (Vim mode)
+
+When Vim editing mode is enabled, the case indicator uses the `vim-insert`,
+`vim-normal`, or `vim-delete` state to indicate the current editing mode.
+
+```css
+case-indicator vim-insert { }
+case-indicator vim-normal { }
+case-indicator vim-delete { }
+```
+
 ## Widget properties
 
 The following properties are currently supported:

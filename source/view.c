@@ -91,9 +91,9 @@ struct _rofi_view_cache_state CacheState = {
 static char *get_matching_state(RofiViewState* state) {
   if (config.vim_mode) {
     if (state->vim_delete_pending) {
-      return "D";
+      return "[D]";
     }
-    return state->vim_insert_mode ? "I" : "N";
+    return state->vim_insert_mode ? "[I]" : "[N]";
   }
   if (state->case_sensitive) {
     if (config.sort) {
@@ -107,6 +107,23 @@ static char *get_matching_state(RofiViewState* state) {
     }
   }
   return " ";
+}
+
+static void update_matching_state(RofiViewState *state) {
+  if (state->case_indicator == NULL) {
+    return;
+  }
+
+  textbox_text(state->case_indicator, get_matching_state(state));
+  if (!config.vim_mode) {
+    widget_set_state(WIDGET(state->case_indicator), "normal.normal");
+  } else if (state->vim_delete_pending) {
+    widget_set_state(WIDGET(state->case_indicator), "vim-delete");
+  } else if (state->vim_insert_mode) {
+    widget_set_state(WIDGET(state->case_indicator), "vim-insert");
+  } else {
+    widget_set_state(WIDGET(state->case_indicator), "vim-normal");
+  }
 }
 
 /**
@@ -788,7 +805,7 @@ static gboolean rofi_view_refilter_real(RofiViewState *state) {
     state->tokens = helper_tokenize(pattern, state->case_sensitive);
 
     if (config.case_smart && state->case_indicator) {
-      textbox_text(state->case_indicator, get_matching_state(state));
+      update_matching_state(state);
     }
     /**
      * On long lists it can be beneficial to parallelize.
@@ -994,9 +1011,7 @@ static void rofi_view_trigger_global_action(KeyBindingAction action) {
         state->vim_insert_mode = FALSE;
         state->vim_delete_pending = FALSE;
         textbox_set_block_cursor(state->text, TRUE);
-        if (state->case_indicator != NULL) {
-          textbox_text(state->case_indicator, get_matching_state(state));
-        }
+        update_matching_state(state);
       } else {
         state->retv = MENU_CANCEL;
         state->quit = TRUE;
@@ -1070,7 +1085,7 @@ static void rofi_view_trigger_global_action(KeyBindingAction action) {
     if (state->case_indicator != NULL) {
       config.sort = !config.sort;
       state->refilter = TRUE;
-      textbox_text(state->case_indicator, get_matching_state(state));
+      update_matching_state(state);
     }
     break;
   case MODE_PREVIOUS:
@@ -1100,7 +1115,7 @@ static void rofi_view_trigger_global_action(KeyBindingAction action) {
       config.case_sensitive = !config.case_sensitive;
       (state->selected_line) = 0;
       state->refilter = TRUE;
-      textbox_text(state->case_indicator, get_matching_state(state));
+      update_matching_state(state);
     }
     break;
   // Special delete entry command.
@@ -1486,9 +1501,7 @@ void rofi_view_handle_text(RofiViewState *state, char *text) {
         textbox_set_block_cursor(state->text, FALSE);
       }
     }
-    if (state->case_indicator != NULL) {
-      textbox_text(state->case_indicator, get_matching_state(state));
-    }
+    update_matching_state(state);
     return;
   }
   if (textbox_append_text(state->text, text, strlen(text))) {
@@ -1756,7 +1769,7 @@ static void rofi_view_add_widget(RofiViewState *state, widget *parent_widget,
                        TB_AUTOWIDTH | TB_AUTOHEIGHT, NORMAL, "*", 0, 0);
     // Add small separator between case indicator and text box.
     box_add((box *)parent_widget, WIDGET(state->case_indicator), FALSE);
-    textbox_text(state->case_indicator, get_matching_state(state));
+    update_matching_state(state);
   }
   /**
    * ENTRY BOX

@@ -157,6 +157,15 @@ case-indicator {
     spacing:    0;
     text-color: var(normal-foreground);
 }
+case-indicator vim-insert {
+    text-color: var(active-foreground);
+}
+case-indicator vim-normal {
+    text-color: var(normal-foreground);
+}
+case-indicator vim-delete {
+    text-color: var(urgent-foreground);
+}
 entry {
     spacing:           0;
     text-color:        var(normal-foreground);
