@@ -400,11 +400,11 @@ int textbox_get_cursor(const textbox *tb) {
   return 0;
 }
 
-void textbox_set_block_cursor(textbox *tb, gboolean enabled) {
-  if (tb == NULL || tb->block_cursor == enabled) {
+void textbox_set_underline_cursor(textbox *tb, gboolean enabled) {
+  if (tb == NULL || tb->underline_cursor == enabled) {
     return;
   }
-  tb->block_cursor = enabled;
+  tb->underline_cursor = enabled;
   widget_queue_redraw(WIDGET(tb));
 }
 
@@ -584,7 +584,7 @@ static void textbox_draw(widget *wid, cairo_t *draw) {
           rofi_theme_get_distance(WIDGET(tb), "cursor-width", 2);
       int cursor_pixel_width =
           distance_get_pixel(cursor_width, ROFI_ORIENTATION_HORIZONTAL);
-      if (tb->block_cursor) {
+      if (tb->underline_cursor) {
         if (cursor_offset < strlen(text)) {
           const char *next = g_utf8_next_char(text + cursor_offset);
           PangoRectangle next_pos;
@@ -592,11 +592,20 @@ static void textbox_draw(widget *wid, cairo_t *draw) {
           cursor_pixel_width =
               MAX(cursor_pixel_width, (next_pos.x - pos.x) / PANGO_SCALE);
         } else {
-          RofiDistance block_cursor_width =
-              rofi_theme_get_distance(WIDGET(tb), "block-cursor-width", 8);
+          RofiDistance underline_cursor_width =
+              rofi_theme_get_distance(WIDGET(tb), "underline-cursor-width", 8);
           cursor_pixel_width = distance_get_pixel(
-              block_cursor_width, ROFI_ORIENTATION_HORIZONTAL);
+              underline_cursor_width, ROFI_ORIENTATION_HORIZONTAL);
         }
+        RofiDistance underline_cursor_height =
+            rofi_theme_get_distance(WIDGET(tb), "underline-cursor-height", 2);
+        int underline_cursor_pixel_height = MAX(
+            1, distance_get_pixel(underline_cursor_height,
+                                  ROFI_ORIENTATION_VERTICAL));
+        underline_cursor_pixel_height =
+            MIN(cursor_height, underline_cursor_pixel_height);
+        cursor_y += cursor_height - underline_cursor_pixel_height;
+        cursor_height = underline_cursor_pixel_height;
       }
       if ((x + cursor_x) != tb->cursor_x_pos) {
         tb->cursor_x_pos = x + cursor_x;

@@ -76,7 +76,7 @@ typedef struct {
   double xalign;
 
   int cursor_x_pos;
-  gboolean block_cursor;
+  gboolean underline_cursor;
 
   TBFontConfig *tbfc;
 
@@ -363,8 +363,8 @@ char *textbox_get_text(const textbox *tb);
 int textbox_get_cursor(const textbox *tb);
 
 /**
- * Switch between an insertion bar and a block cursor.
+ * Switch between an insertion bar and an underline cursor.
  */
-void textbox_set_block_cursor(textbox *tb, gboolean enabled);
+void textbox_set_underline_cursor(textbox *tb, gboolean enabled);
 /**@}*/
 #endif // ROFI_TEXTBOX_H

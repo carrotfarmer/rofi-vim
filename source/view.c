@@ -1010,7 +1010,7 @@ static void rofi_view_trigger_global_action(KeyBindingAction action) {
       if (state->vim_insert_mode) {
         state->vim_insert_mode = FALSE;
         state->vim_delete_pending = FALSE;
-        textbox_set_block_cursor(state->text, TRUE);
+        textbox_set_underline_cursor(state->text, TRUE);
         update_matching_state(state);
       } else {
         state->retv = MENU_CANCEL;
@@ -1498,7 +1498,7 @@ void rofi_view_handle_text(RofiViewState *state, char *text) {
       if (enter_insert) {
         state->vim_insert_mode = TRUE;
         state->vim_delete_pending = FALSE;
-        textbox_set_block_cursor(state->text, FALSE);
+        textbox_set_underline_cursor(state->text, FALSE);
       }
     }
     update_matching_state(state);

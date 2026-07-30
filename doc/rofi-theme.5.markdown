@@ -1085,6 +1085,12 @@ The following properties are currently supported:
 
 - **cursor-color**:      The color used to draw the cursor.
 
+- **underline-cursor-width**: The width of the underline cursor when it is at
+    the end of the input. The default is 8 pixels.
+
+- **underline-cursor-height**: The height of the underline cursor. The default
+    is 2 pixels.
+
 - **hide-cursor-on-empty**: Hides the cursor when the search field is empty.
     (Boolean)
 
