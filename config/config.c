@@ -182,4 +182,6 @@ Settings config = {
     .completer_mode = "filebrowser",
     /** Whether to enable imdkit, see #2123 */
     .enable_imdkit = TRUE,
+    /** Modal Vim editing is opt-in. */
+    .vim_mode = FALSE,
 };

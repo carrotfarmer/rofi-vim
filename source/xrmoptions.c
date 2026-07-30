@@ -509,6 +509,12 @@ static XrmOption xrmOptions[] = {
      NULL,
      "Whether to enable imdkit",
      CONFIG_DEFAULT},
+    {xrm_Boolean,
+     "vim-mode",
+     {.snum = &config.vim_mode},
+     NULL,
+     "Enable modal Vim editing in the input textbox",
+     CONFIG_DEFAULT},
 };
 
 /** Dynamic array of extra options */

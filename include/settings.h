@@ -219,6 +219,8 @@ typedef struct {
   char *completer_mode;
   /** Whether to enable imdkit, see #2123 */
   gboolean enable_imdkit;
+  /** Enable modal Vim editing in the input textbox. */
+  gboolean vim_mode;
 } Settings;
 
 /** Default number of lines in the list view */

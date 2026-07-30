@@ -399,6 +399,15 @@ int textbox_get_cursor(const textbox *tb) {
   }
   return 0;
 }
+
+void textbox_set_block_cursor(textbox *tb, gboolean enabled) {
+  if (tb == NULL || tb->block_cursor == enabled) {
+    return;
+  }
+  tb->block_cursor = enabled;
+  widget_queue_redraw(WIDGET(tb));
+}
+
 // set the default text to display
 void textbox_text(textbox *tb, const char *text) {
   if (tb == NULL) {
@@ -575,6 +584,20 @@ static void textbox_draw(widget *wid, cairo_t *draw) {
           rofi_theme_get_distance(WIDGET(tb), "cursor-width", 2);
       int cursor_pixel_width =
           distance_get_pixel(cursor_width, ROFI_ORIENTATION_HORIZONTAL);
+      if (tb->block_cursor) {
+        if (cursor_offset < strlen(text)) {
+          const char *next = g_utf8_next_char(text + cursor_offset);
+          PangoRectangle next_pos;
+          pango_layout_get_cursor_pos(tb->layout, next - text, &next_pos, NULL);
+          cursor_pixel_width =
+              MAX(cursor_pixel_width, (next_pos.x - pos.x) / PANGO_SCALE);
+        } else {
+          RofiDistance block_cursor_width =
+              rofi_theme_get_distance(WIDGET(tb), "block-cursor-width", 8);
+          cursor_pixel_width = distance_get_pixel(
+              block_cursor_width, ROFI_ORIENTATION_HORIZONTAL);
+        }
+      }
       if ((x + cursor_x) != tb->cursor_x_pos) {
         tb->cursor_x_pos = x + cursor_x;
       }

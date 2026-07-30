@@ -89,6 +89,12 @@ struct _rofi_view_cache_state CacheState = {
 };
 
 static char *get_matching_state(RofiViewState* state) {
+  if (config.vim_mode) {
+    if (state->vim_delete_pending) {
+      return "D";
+    }
+    return state->vim_insert_mode ? "I" : "N";
+  }
   if (state->case_sensitive) {
     if (config.sort) {
       return "±";
@@ -982,6 +988,21 @@ static void rofi_view_clipboard_callback(char *clipboard_data, G_GNUC_UNUSED voi
 static void rofi_view_trigger_global_action(KeyBindingAction action) {
   RofiViewState *state = rofi_view_get_active();
   switch (action) {
+  case VIM_NORMAL_MODE:
+    if (config.vim_mode) {
+      if (state->vim_insert_mode) {
+        state->vim_insert_mode = FALSE;
+        state->vim_delete_pending = FALSE;
+        textbox_set_block_cursor(state->text, TRUE);
+        if (state->case_indicator != NULL) {
+          textbox_text(state->case_indicator, get_matching_state(state));
+        }
+      } else {
+        state->retv = MENU_CANCEL;
+        state->quit = TRUE;
+      }
+    }
+    break;
   // Handling of paste
   case PASTE_PRIMARY:
 #ifdef ENABLE_XCB
@@ -1399,6 +1420,77 @@ void rofi_view_trigger_action(RofiViewState *state, BindingsScope scope,
 }
 
 void rofi_view_handle_text(RofiViewState *state, char *text) {
+  if (config.vim_mode && !state->vim_insert_mode) {
+    for (const char *cursor = text; cursor != NULL && *cursor != '\0';
+         cursor = g_utf8_next_char(cursor)) {
+      gunichar key = g_utf8_get_char(cursor);
+      KeyBindingAction action = 0;
+      gboolean enter_insert = FALSE;
+
+      if (state->vim_delete_pending) {
+        switch (key) {
+        case 'd': action = CLEAR_LINE; break;
+        case 'w': action = REMOVE_WORD_FORWARD; break;
+        case 'b': action = REMOVE_WORD_BACK; break;
+        case '0': action = REMOVE_TO_SOL; break;
+        case '$': action = REMOVE_TO_EOL; break;
+        case 'h': action = REMOVE_CHAR_BACK; break;
+        case 'l': action = REMOVE_CHAR_FORWARD; break;
+        default: break;
+        }
+        state->vim_delete_pending = FALSE;
+      } else {
+        switch (key) {
+        case 'i': enter_insert = TRUE; break;
+        case 'a':
+          action = MOVE_CHAR_FORWARD;
+          enter_insert = TRUE;
+          break;
+        case 'I':
+          action = MOVE_FRONT;
+          enter_insert = TRUE;
+          break;
+        case 'A':
+          action = MOVE_END;
+          enter_insert = TRUE;
+          break;
+        case 'h': action = MOVE_CHAR_BACK; break;
+        case 'l': action = MOVE_CHAR_FORWARD; break;
+        case 'w': action = MOVE_WORD_FORWARD; break;
+        case 'b': action = MOVE_WORD_BACK; break;
+        case '0': action = MOVE_FRONT; break;
+        case '$': action = MOVE_END; break;
+        case 'x': action = REMOVE_CHAR_FORWARD; break;
+        case 'X': action = REMOVE_CHAR_BACK; break;
+        case 'D': action = REMOVE_TO_EOL; break;
+        case 'C':
+          action = REMOVE_TO_EOL;
+          enter_insert = TRUE;
+          break;
+        case 'd':
+          state->vim_delete_pending = TRUE;
+          break;
+        case 'j': action = ROW_DOWN; break;
+        case 'k': action = ROW_UP; break;
+        case 'q': action = CANCEL; break;
+        default: break;
+        }
+      }
+
+      if (action != 0) {
+        rofi_view_trigger_global_action(action);
+      }
+      if (enter_insert) {
+        state->vim_insert_mode = TRUE;
+        state->vim_delete_pending = FALSE;
+        textbox_set_block_cursor(state->text, FALSE);
+      }
+    }
+    if (state->case_indicator != NULL) {
+      textbox_text(state->case_indicator, get_matching_state(state));
+    }
+    return;
+  }
   if (textbox_append_text(state->text, text, strlen(text))) {
     state->refilter = TRUE;
     rofi_view_input_changed();
@@ -1805,6 +1897,8 @@ RofiViewState *rofi_view_create(Mode *sw, const char *input,
   state->distance = NULL;
   state->quit = FALSE;
   state->skip_absorb = FALSE;
+  state->vim_insert_mode = TRUE;
+  state->vim_delete_pending = FALSE;
   // We want to filter on the first run.
   state->refilter = TRUE;
   state->finalize = finalize;
