@@ -264,6 +264,14 @@ double textbox_get_estimated_char_height(void);
 void textbox_delete(textbox *tb, int pos, int dlen);
 
 /**
+ * Replace the character under the cursor without moving the cursor.
+ *
+ * @returns TRUE when a character was replaced.
+ */
+gboolean textbox_replace_char(textbox *tb, const char *replacement,
+                              int replacement_len);
+
+/**
  * @param tb Handle to the textbox
  * @param x The new horizontal position to place with textbox
  * @param y The new vertical position to place with textbox

@@ -166,6 +166,9 @@ case-indicator vim-normal {
 case-indicator vim-delete {
     text-color: var(urgent-foreground);
 }
+case-indicator vim-replace {
+    text-color: var(urgent-foreground);
+}
 entry {
     spacing:           0;
     text-color:        var(normal-foreground);

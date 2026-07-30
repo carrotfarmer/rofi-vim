@@ -93,6 +93,9 @@ static char *get_matching_state(RofiViewState* state) {
     if (state->vim_delete_pending) {
       return "[D]";
     }
+    if (state->vim_replace_pending) {
+      return "[R]";
+    }
     return state->vim_insert_mode ? "[I]" : "[N]";
   }
   if (state->case_sensitive) {
@@ -119,6 +122,8 @@ static void update_matching_state(RofiViewState *state) {
     widget_set_state(WIDGET(state->case_indicator), "normal.normal");
   } else if (state->vim_delete_pending) {
     widget_set_state(WIDGET(state->case_indicator), "vim-delete");
+  } else if (state->vim_replace_pending) {
+    widget_set_state(WIDGET(state->case_indicator), "vim-replace");
   } else if (state->vim_insert_mode) {
     widget_set_state(WIDGET(state->case_indicator), "vim-insert");
   } else {
@@ -1010,7 +1015,12 @@ static void rofi_view_trigger_global_action(KeyBindingAction action) {
       if (state->vim_insert_mode) {
         state->vim_insert_mode = FALSE;
         state->vim_delete_pending = FALSE;
+        state->vim_replace_pending = FALSE;
         textbox_set_underline_cursor(state->text, TRUE);
+        update_matching_state(state);
+      } else if (state->vim_delete_pending || state->vim_replace_pending) {
+        state->vim_delete_pending = FALSE;
+        state->vim_replace_pending = FALSE;
         update_matching_state(state);
       } else {
         state->retv = MENU_CANCEL;
@@ -1442,7 +1452,15 @@ void rofi_view_handle_text(RofiViewState *state, char *text) {
       KeyBindingAction action = 0;
       gboolean enter_insert = FALSE;
 
-      if (state->vim_delete_pending) {
+      if (state->vim_replace_pending) {
+        char replacement[7] = {0};
+        int replacement_len = g_unichar_to_utf8(key, replacement);
+        if (textbox_replace_char(state->text, replacement, replacement_len)) {
+          state->refilter = TRUE;
+          rofi_view_input_changed();
+        }
+        state->vim_replace_pending = FALSE;
+      } else if (state->vim_delete_pending) {
         switch (key) {
         case 'd': action = CLEAR_LINE; break;
         case 'w': action = REMOVE_WORD_FORWARD; break;
@@ -1485,6 +1503,9 @@ void rofi_view_handle_text(RofiViewState *state, char *text) {
         case 'd':
           state->vim_delete_pending = TRUE;
           break;
+        case 'r':
+          state->vim_replace_pending = TRUE;
+          break;
         case 'j': action = ROW_DOWN; break;
         case 'k': action = ROW_UP; break;
         case 'q': action = CANCEL; break;
@@ -1498,6 +1519,7 @@ void rofi_view_handle_text(RofiViewState *state, char *text) {
       if (enter_insert) {
         state->vim_insert_mode = TRUE;
         state->vim_delete_pending = FALSE;
+        state->vim_replace_pending = FALSE;
         textbox_set_underline_cursor(state->text, FALSE);
       }
     }
@@ -1912,6 +1934,7 @@ RofiViewState *rofi_view_create(Mode *sw, const char *input,
   state->skip_absorb = FALSE;
   state->vim_insert_mode = TRUE;
   state->vim_delete_pending = FALSE;
+  state->vim_replace_pending = FALSE;
   // We want to filter on the first run.
   state->refilter = TRUE;
   state->finalize = finalize;

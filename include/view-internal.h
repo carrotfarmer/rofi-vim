@@ -92,10 +92,12 @@ struct RofiViewState {
 
   /** Previously called key action. */
   KeyBindingAction prev_action;
-  /** Whether modal Vim editing is currently in insert mode. */
+
+  /** state trackers for vim editing */
   gboolean vim_insert_mode;
-  /** Whether Vim's delete operator is waiting for a motion. */
   gboolean vim_delete_pending;
+  gboolean vim_replace_pending;
+
   /** Time previous key action was executed. */
   xcb_timestamp_t last_button_press;
 

@@ -832,6 +832,19 @@ void textbox_delete(textbox *tb, int pos, int dlen) {
   tb->changed = TRUE;
 }
 
+gboolean textbox_replace_char(textbox *tb, const char *replacement,
+                              int replacement_len) {
+  if (tb == NULL || replacement == NULL || replacement_len <= 0 ||
+      !(tb->flags & TB_EDITABLE) ||
+      tb->cursor >= g_utf8_strlen(tb->text, -1)) {
+    return FALSE;
+  }
+
+  textbox_delete(tb, tb->cursor, 1);
+  textbox_insert(tb, tb->cursor, replacement, replacement_len);
+  return TRUE;
+}
+
 /**
  * @param tb Handle to the textbox
  *

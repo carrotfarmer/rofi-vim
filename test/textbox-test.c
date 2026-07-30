@@ -180,6 +180,16 @@ int main(G_GNUC_UNUSED int argc, G_GNUC_UNUSED char **argv) {
   TASSERT(strcmp(box->text, "aapmies") == 0);
   TASSERT(box->cursor == 5);
 
+  // Replace the character under the cursor without moving the cursor.
+  textbox_text(box, "test");
+  textbox_cursor(box, 1);
+  TASSERT(textbox_replace_char(box, "ø", strlen("ø")) == TRUE);
+  TASSERT(strcmp(box->text, "tøst") == 0);
+  TASSERT(box->cursor == 1);
+  textbox_cursor(box, 4);
+  TASSERT(textbox_replace_char(box, "x", 1) == FALSE);
+  TASSERT(strcmp(box->text, "tøst") == 0);
+
   textbox_text(box, "aap noot mies");
   textbox_cursor(box, 8);
   textbox_keybinding(box, REMOVE_WORD_BACK);

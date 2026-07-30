@@ -948,12 +948,14 @@ This allows the colors used for drawing the handle to be set independently.
 #### Case indicator (Vim mode)
 
 When Vim editing mode is enabled, the case indicator uses the `vim-insert`,
-`vim-normal`, or `vim-delete` state to indicate the current editing mode.
+`vim-normal`, `vim-delete`, or `vim-replace` state to indicate the current
+editing mode.
 
 ```css
 case-indicator vim-insert { }
 case-indicator vim-normal { }
 case-indicator vim-delete { }
+case-indicator vim-replace { }
 ```
 
 ## Widget properties
