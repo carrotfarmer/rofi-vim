@@ -33,9 +33,8 @@ Run it with:
   -show drun
 ```
 
-Note: This obviously does not replace the system Rofi installation. (`/usr/bin/rofi`). 
+For safety purposes obviously, these commands do NOT replace the system Rofi installation, which would probably live in `/usr/bin/rofi`. 
+Try it out first!
 
 Refer to the
 [Vim mode documentation](doc/vim-mode.md) for configuration and the full list of keybindings.
-
-<br />
